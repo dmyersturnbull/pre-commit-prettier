@@ -1,5 +1,9 @@
 {
-    "name": "placeholder_package",
-    "description": "Note: double curly-braces because python .format",
-    "version": "0.0.0"
+    "name": "pre-commit-prettier",
+    "description": "Wrapper for plugin support for prettier",
+    "version": "1.0.0",
+    "bin": "./run-prettier.js",
+    "main": "./run-prettier.js",
+    "license": "MIT",
+    "type": "module"
 }

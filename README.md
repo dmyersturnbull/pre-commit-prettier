@@ -1,7 +1,7 @@
 prettier mirror
 ===============
 
-Mirror of prettier package for pre-commit.
+Mirror of prettier package for pre-commit. Adjusted to work with prettier version 3 and above.
 
 For pre-commit: see https://github.com/pre-commit/pre-commit
 
@@ -13,25 +13,23 @@ For prettier: see https://github.com/prettier/prettier
 Add this to your `.pre-commit-config.yaml`:
 
 ```yaml
--   repo: https://github.com/pre-commit/mirrors-prettier
+-   repo: https://github.com/JoC0de/pre-commit-prettier
     rev: ''  # Use the sha / tag you want to point at
     hooks:
     -   id: prettier
 ```
 
-*note*: only prettier versions >= 2.1.0 are supported
-
 When using plugins with `prettier` you'll need to declare them under
 `additional_dependencies`. For example:
 
 ```yaml
--   repo: https://github.com/pre-commit/mirrors-prettier
+-   repo: https://github.com/JoC0de/pre-commit-prettier
     rev: ''  # Use the sha / tag you want to point at
     hooks:
     -   id: prettier
         additional_dependencies:
-        -   prettier@2.1.2
-        -   '@prettier/plugin-xml@0.12.0'
+        -   prettier@3.3.3
+        -   '@prettier/plugin-xml@3.4.1'
 ```
 
 By default, all files are passed to `prettier`, if you want to limit the

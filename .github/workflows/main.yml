@@ -1,23 +1,60 @@
 name: main
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   schedule:
   - cron: '15 8 * * *'
+
+permissions: 
+  contents: write
 
 jobs:
   build:
     name: main
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-python@v1
-    - run: pip install pre-commit-mirror-maker
-    - run: git config --global user.name 'Github Actions'
-    - run: git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
-    - run: pre-commit-mirror . --language=node --package-name=prettier --types=text --entry='prettier --write --ignore-unknown' --id=prettier
-    - run: |
-        git remote set-url origin https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY
-        git push origin HEAD:refs/heads/main --tags
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install pre-commit-mirror-maker
+      run: pip install pre-commit-mirror-maker
+      shell: bash
+
+    - name: Addjust pre-commit-mirror-maker source code      
+      run: |
+        $ErrorActionPreference = "Stop"
+        $packageInfo = pip show pre-commit-mirror-maker
+        $pythonPackageLocation = ($packageInfo  -match 'Location: (.*)')[0].TrimStart('Location: ')
+        $sourceFilePath = "$pythonPackageLocation/pre_commit_mirror_maker/languages.py"
+        $sourceFileContent = Get-Content -Raw -Path $sourceFilePath
+        if ($IsWindows) {
+          # add missing shell flag (else it fails running npm command)
+          $sourceFileContent = $sourceFileContent -replace 'subprocess\.check_output\(cmd\)', 'subprocess.check_output(cmd, shell=True)'
+        }
+
+        # filter pre releas versions
+        $sourceFileContent = $sourceFileContent -replace "return output\['versions'\]", "return [x for x in output['versions'] if not '-' in x]"
+        Set-Content -Path $sourceFilePath -Value $sourceFileContent
+
+        # remove the template files that we have overwritten with custom parameters
+        Remove-Item -Path "$pythonPackageLocation/pre_commit_mirror_maker/node/.npmignore" -ErrorAction Ignore
+        Remove-Item -Path "$pythonPackageLocation/pre_commit_mirror_maker/node/package.json" -ErrorAction Ignore
+      shell: pwsh
+
+    - name: Configure Git user name
+      run: git config --local user.name 'Github Actions'
+      shell: bash
+
+    - name: Configure Git user E-Mail
+      run: git config --local user.email '41898282+github-actions[bot]@users.noreply.github.com'
+      shell: bash
+
+    - name: Run pre-commit-mirror-maker
+      run: pre-commit-mirror . --language=node --package-name=prettier --types=text --id=prettier --entry "pre-commit-prettier --write --ignore-unknown"
+      shell: bash
+
+    - name: Push to repository
+      run: git push origin HEAD:refs/heads/main --tags
+      shell: bash
+
