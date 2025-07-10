@@ -4,7 +4,7 @@
 
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import path from "node:path";
-import { run as runPrettier } from "prettier/internal/cli.mjs";
+import { createRequire } from "node:module";
 
 const nodePath = path.resolve(process.env.NODE_PATH);
 const pluginsPath = path.resolve(nodePath, "@prettier");
@@ -90,4 +90,11 @@ process.stdout.write = function (message, ...optionalParams) {
   originalWrite.apply(process.stdout, [message, ...optionalParams]);
 };
 
-runPrettier();
+// Use '--experimental-cli' if it's available AND 'PRETTIER_EXPERIMENTAL_CLI' isn't set.
+// ('PRETTIER_EXPERIMENTAL_CLI' is a string, and "0" is truthy.)
+// Assume that, if '--experimental-cli' isn't available, it's now the default.
+if (!process.argv.includes("--experimental-cli") && !process.env.PRETTIER_EXPERIMENTAL_CLI) {
+  process.argv.push("--experimental-cli");
+}
+
+createRequire(import.meta.url)("prettier/bin/prettier.cjs");
