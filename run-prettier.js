@@ -5,6 +5,7 @@
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
+import url from "node:url";
 
 const nodePath = path.resolve(process.env.NODE_PATH);
 const pluginsPath = path.resolve(nodePath, "@prettier");
@@ -73,8 +74,17 @@ const additionalArguments = plugins
       console.error(`Error '${error}' reading or parsing package.json from '${pluginDirectoryPath}'`);
       pluginImportPath = pluginDirectoryPath;
     }
-    return ["--plugin", pluginImportPath];
+
+    const pluginImportFileUrl = url.pathToFileURL(pluginImportPath);
+    return ["--plugin", pluginImportFileUrl.toString()];
   });
+
+// Use '--experimental-cli' if it's available AND 'PRETTIER_EXPERIMENTAL_CLI' isn't set.
+// ('PRETTIER_EXPERIMENTAL_CLI' is a string, and "0" is truthy.)
+// Assume that, if '--experimental-cli' isn't available, it's now the default.
+if (!process.argv.includes("--experimental-cli") && !process.env.PRETTIER_EXPERIMENTAL_CLI) {
+  additionalArguments.push("--experimental-cli");
+}
 
 // the first two items of process.argv are reserved (the node.exe and the current file name) so insert after them
 process.argv.splice(2, 0, ...additionalArguments);
@@ -90,11 +100,6 @@ process.stdout.write = function (message, ...optionalParams) {
   originalWrite.apply(process.stdout, [message, ...optionalParams]);
 };
 
-// Use '--experimental-cli' if it's available AND 'PRETTIER_EXPERIMENTAL_CLI' isn't set.
-// ('PRETTIER_EXPERIMENTAL_CLI' is a string, and "0" is truthy.)
-// Assume that, if '--experimental-cli' isn't available, it's now the default.
-if (!process.argv.includes("--experimental-cli") && !process.env.PRETTIER_EXPERIMENTAL_CLI) {
-  process.argv.push("--experimental-cli");
-}
-
-createRequire(import.meta.url)("prettier/bin/prettier.cjs");
+const requireImport = createRequire(import.meta.url);
+const runPrettier = requireImport("prettier/bin/prettier.cjs");
+await runPrettier;
