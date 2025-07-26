@@ -79,13 +79,6 @@ const additionalArguments = plugins
     return ["--plugin", pluginImportFileUrl.toString()];
   });
 
-// Use '--experimental-cli' if it's available AND 'PRETTIER_EXPERIMENTAL_CLI' isn't set.
-// ('PRETTIER_EXPERIMENTAL_CLI' is a string, and "0" is truthy.)
-// Assume that, if '--experimental-cli' isn't available, it's now the default.
-if (!process.argv.includes("--experimental-cli") && !process.env.PRETTIER_EXPERIMENTAL_CLI) {
-  additionalArguments.push("--experimental-cli");
-}
-
 // the first two items of process.argv are reserved (the node.exe and the current file name) so insert after them
 process.argv.splice(2, 0, ...additionalArguments);
 

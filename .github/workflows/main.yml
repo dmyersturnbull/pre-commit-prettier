@@ -51,7 +51,14 @@ jobs:
         shell: bash
 
       - name: Run pre-commit-mirror-maker
-        run: pre-commit-mirror . --language=node --package-name=prettier --types=text --id=prettier --entry "pre-commit-prettier --write --ignore-unknown"
+        run: |
+          pre-commit-mirror \
+            . \
+            --language=node \
+            --package-name=prettier \
+            --types=text \
+            --id=prettier \
+            --entry "pre-commit-prettier --write --ignore-unknown --experimental-cli --no-cache"
         shell: bash
 
       - name: Push to repository

@@ -1,7 +1,7 @@
 -   id: prettier
     name: prettier
     description: ''
-    entry: pre-commit-prettier --write --ignore-unknown
+    entry: pre-commit-prettier --write --ignore-unknown --experimental-cli --no-cache
     language: node
     'types': [text]
     args: []
